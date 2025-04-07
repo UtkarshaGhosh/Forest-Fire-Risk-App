@@ -55,8 +55,11 @@ def user_input_features():
     rain = st.sidebar.slider('Rainfall (mm)', 0.0, 10.0, 0.0)
     month = st.sidebar.slider('Month (1=Jan, 12=Dec)', 1, 12, 8)
     day = st.sidebar.slider('Day (1=Mon, 7=Sun)', 1, 7, 4)
-    X_input = pd.DataFrame([[FFMC, DMC, DC, ISI, temp, RH, wind, rain, month, day]],
-                           columns=['FFMC', 'DMC', 'DC', 'ISI', 'temp', 'RH', 'wind', 'rain', 'month', 'day'])
+    X_coord = st.sidebar.slider('X Coordinate (1–9)', 1, 9, 4)
+    Y_coord = st.sidebar.slider('Y Coordinate (2–9)', 2, 9, 4)
+
+    X_input = pd.DataFrame([[FFMC, DMC, DC, ISI, temp, RH, wind, rain, month, day, X_coord, Y_coord]],
+                           columns=['FFMC', 'DMC', 'DC', 'ISI', 'temp', 'RH', 'wind', 'rain', 'month', 'day', 'X', 'Y'])
     return X_input
 
 input_df = user_input_features()
@@ -80,7 +83,7 @@ st.subheader("📊 Sample of the Dataset")
 st.dataframe(data.head(10))
 
 # Interactive Fire Map
-st.subheader("🗺️ Fire Incident Map (Simulated Location)")
+st.subheader("🗌️ Fire Incident Map (Simulated Location)")
 
 # Simulate lat/lon from X/Y grid
 map_df = full_df[['X', 'Y', 'fire_risk']].copy()
@@ -106,4 +109,5 @@ st.markdown("""
 - **Wind Speed**: Stronger winds help fires spread quickly.
 - **Rainfall**: More rain reduces fire likelihood by increasing fuel moisture.
 - **Month & Day**: Seasonal and weekly trends impact conditions and human activities.
+- **X & Y Coordinates**: Indicate location of fire-prone zones in the grid. Some areas may historically show higher fire risk due to vegetation, terrain, or human activity.
 """)
