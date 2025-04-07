@@ -9,7 +9,7 @@ from sklearn.ensemble import RandomForestClassifier
 # 1. Load Dataset
 @st.cache_data
 def load_data():
-    url = "https://raw.githubusercontent.com/selva86/datasets/master/Forestfires.csv"
+    url = "forestfires.csv"
     df = pd.read_csv(url)
     return df
 
