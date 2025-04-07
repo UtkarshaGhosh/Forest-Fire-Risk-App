@@ -58,8 +58,23 @@ def user_input_features():
     X_coord = st.sidebar.slider('X Coordinate (1–9)', 1, 9, 4)
     Y_coord = st.sidebar.slider('Y Coordinate (2–9)', 2, 9, 4)
 
-    X_input = pd.DataFrame([[FFMC, DMC, DC, ISI, temp, RH, wind, rain, month, day, X_coord, Y_coord]],
-                           columns=['FFMC', 'DMC', 'DC', 'ISI', 'temp', 'RH', 'wind', 'rain', 'month', 'day', 'X', 'Y'])
+    # Ensure correct order of columns as per training
+    input_dict = {
+        'X': X_coord,
+        'Y': Y_coord,
+        'month': month,
+        'day': day,
+        'FFMC': FFMC,
+        'DMC': DMC,
+        'DC': DC,
+        'ISI': ISI,
+        'temp': temp,
+        'RH': RH,
+        'wind': wind,
+        'rain': rain,
+    }
+    X_input = pd.DataFrame([input_dict])
+    X_input = X[X.columns].iloc[:0].append(X_input, ignore_index=True)  # Ensures exact column match
     return X_input
 
 input_df = user_input_features()
@@ -83,7 +98,7 @@ st.subheader("📊 Sample of the Dataset")
 st.dataframe(data.head(10))
 
 # Interactive Fire Map
-st.subheader("🗌️ Fire Incident Map (Simulated Location)")
+st.subheader("🗜️ Fire Incident Map (Simulated Location)")
 
 # Simulate lat/lon from X/Y grid
 map_df = full_df[['X', 'Y', 'fire_risk']].copy()
