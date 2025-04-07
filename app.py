@@ -77,15 +77,45 @@ def user_input_features():
     X_input = pd.concat([X[X.columns].iloc[:0], X_input], ignore_index=True)  # Ensures exact column match
     return X_input
 
-input_df = user_input_features()
-prediction = model.predict(input_df)[0]
-probability = model.predict_proba(input_df)[0][1]
+if st.sidebar.button("Submit Prediction"):
+    input_df = user_input_features()
+    prediction = model.predict(input_df)[0]
 
-# Display output
-if prediction == 1:
-    st.error(f"⚠️ High Fire Risk Detected! Probability: {probability*100:.2f}%")
-else:
-    st.success(f"✅ Low Fire Risk. Probability: {probability*100:.2f}%")
+    # Display output
+    if prediction == 1:
+        st.error("⚠️ High Fire Risk Detected!")
+    else:
+        st.success("✅ Low Fire Risk.")
+
+# ➕ Custom input section
+st.subheader("🧪 Custom Prediction Test")
+with st.expander("Test With Specific Values"):
+    col1, col2 = st.columns(2)
+    with col1:
+        ffmc_val = st.number_input("FFMC", value=92.78)
+        dmc_val = st.number_input("DMC", value=87.46)
+        dc_val = st.number_input("DC", value=250.71)
+        isi_val = st.number_input("ISI", value=16.64)
+        temp_val = st.number_input("Temperature", value=40.37)
+    with col2:
+        rh_val = st.number_input("Relative Humidity", value=22)
+        wind_val = st.number_input("Wind Speed", value=4.4)
+        rain_val = st.number_input("Rainfall", value=2.51)
+        month_val = st.number_input("Month", value=9)
+        day_val = st.number_input("Day", value=3)
+
+    if st.button("Predict Fire Risk for Custom Input"):
+        custom_input = pd.DataFrame([{ 
+            'X': 4, 'Y': 4, 'month': month_val, 'day': day_val,
+            'FFMC': ffmc_val, 'DMC': dmc_val, 'DC': dc_val, 'ISI': isi_val,
+            'temp': temp_val, 'RH': rh_val, 'wind': wind_val, 'rain': rain_val
+        }])
+        custom_input = pd.concat([X[X.columns].iloc[:0], custom_input], ignore_index=True)
+        pred = model.predict(custom_input)[0]
+        if pred == 1:
+            st.error("🔥 Fire Risk: HIGH")
+        else:
+            st.success("🌲 Fire Risk: LOW")
 
 # Display heatmap
 st.subheader("🔥 Feature Correlation Heatmap")
