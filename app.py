@@ -7,6 +7,8 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import confusion_matrix, classification_report
+import plotly.figure_factory as ff
 
 # 1. Load Dataset
 @st.cache_data
@@ -58,7 +60,6 @@ def user_input_features():
     X_coord = st.sidebar.slider('X Coordinate (1–9)', 1, 9, 4)
     Y_coord = st.sidebar.slider('Y Coordinate (2–9)', 2, 9, 4)
 
-    # Ensure correct order of columns as per training
     input_dict = {
         'X': X_coord,
         'Y': Y_coord,
@@ -74,14 +75,12 @@ def user_input_features():
         'rain': rain,
     }
     X_input = pd.DataFrame([input_dict])
-    X_input = pd.concat([X[X.columns].iloc[:0], X_input], ignore_index=True)  # Ensures exact column match
+    X_input = pd.concat([X[X.columns].iloc[:0], X_input], ignore_index=True)
     return X_input
 
+input_df = user_input_features()
 if st.sidebar.button("Submit Prediction"):
-    input_df = user_input_features()
     prediction = model.predict(input_df)[0]
-
-    # Display output
     if prediction == 1:
         st.error("⚠️ High Fire Risk Detected!")
     else:
@@ -130,16 +129,12 @@ st.dataframe(data.head(10))
 # Interactive Fire Map
 st.subheader("🗜️ Fire Incident Map (Simulated Location)")
 
-# Simulate lat/lon from X/Y grid
 map_df = full_df[['X', 'Y', 'fire_risk']].copy()
 map_df = map_df.rename(columns={"X": "lon", "Y": "lat"})
 map_df["lat"] = 40.0 + map_df["lat"] * 0.01
 map_df["lon"] = -8.0 + map_df["lon"] * 0.01
-
-# Filter only fire incidents
 fire_locations = map_df[map_df["fire_risk"] == 1][["lat", "lon"]]
 
-# Plot map
 st.map(fire_locations)
 
 # Fire Risk Factor Explanation
@@ -156,3 +151,26 @@ st.markdown("""
 - **Month & Day**: Seasonal and weekly trends impact conditions and human activities.
 - **X & Y Coordinates**: Indicate location of fire-prone zones in the grid. Some areas may historically show higher fire risk due to vegetation, terrain, or human activity.
 """)
+
+# Classification Report and Confusion Matrix
+st.subheader("🧮 Model Evaluation")
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+model_eval = RandomForestClassifier(n_estimators=100, random_state=42)
+model_eval.fit(X_train, y_train)
+y_pred = model_eval.predict(X_test)
+
+cm = confusion_matrix(y_test, y_pred)
+labels = ["No Fire", "Fire"]
+cm_fig = ff.create_annotated_heatmap(
+    z=cm,
+    x=labels,
+    y=labels,
+    colorscale='Blues',
+    showscale=True,
+    annotation_text=[[str(cell) for cell in row] for row in cm]
+)
+st.plotly_chart(cm_fig, use_container_width=True)
+
+report = classification_report(y_test, y_pred, target_names=labels, output_dict=False)
+st.text("📋 Classification Report")
+st.code(report, language='text')
