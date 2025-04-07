@@ -45,8 +45,6 @@ model = train_model(X, y)
 # Sidebar inputs
 st.sidebar.header("Input Parameters")
 def user_input_features():
-    X_val = st.sidebar.slider('X Coordinate', 1, 9, 4)
-    Y_val = st.sidebar.slider('Y Coordinate', 2, 9, 4)
     FFMC = st.sidebar.slider('FFMC Index', 0.0, 100.0, 85.0)
     DMC = st.sidebar.slider('DMC Index', 0.0, 100.0, 26.0)
     DC = st.sidebar.slider('DC Index', 0.0, 300.0, 94.3)
@@ -57,12 +55,10 @@ def user_input_features():
     rain = st.sidebar.slider('Rainfall (mm)', 0.0, 10.0, 0.0)
     month = st.sidebar.slider('Month (1=Jan, 12=Dec)', 1, 12, 8)
     day = st.sidebar.slider('Day (1=Mon, 7=Sun)', 1, 7, 4)
-
-    X_input = pd.DataFrame([[X_val, Y_val, month, day, FFMC, DMC, DC, ISI, temp, RH, wind, rain]],
-                           columns=['X', 'Y', 'month', 'day', 'FFMC', 'DMC', 'DC', 'ISI', 'temp', 'RH', 'wind', 'rain'])
+    X_input = pd.DataFrame([[FFMC, DMC, DC, ISI, temp, RH, wind, rain, month, day]],
+                           columns=['FFMC', 'DMC', 'DC', 'ISI', 'temp', 'RH', 'wind', 'rain', 'month', 'day'])
     return X_input
 
-# Get prediction
 input_df = user_input_features()
 prediction = model.predict(input_df)[0]
 probability = model.predict_proba(input_df)[0][1]
@@ -78,3 +74,36 @@ st.subheader("🔥 Feature Correlation Heatmap")
 fig, ax = plt.subplots(figsize=(10, 6))
 sns.heatmap(full_df.corr(), annot=True, fmt=".2f", cmap="coolwarm", ax=ax)
 st.pyplot(fig)
+
+# Show sample data
+st.subheader("📊 Sample of the Dataset")
+st.dataframe(data.head(10))
+
+# Interactive Fire Map
+st.subheader("🗺️ Fire Incident Map (Simulated Location)")
+
+# Simulate lat/lon from X/Y grid
+map_df = full_df[['X', 'Y', 'fire_risk']].copy()
+map_df = map_df.rename(columns={"X": "lon", "Y": "lat"})
+map_df["lat"] = 40.0 + map_df["lat"] * 0.01
+map_df["lon"] = -8.0 + map_df["lon"] * 0.01
+
+# Filter only fire incidents
+fire_locations = map_df[map_df["fire_risk"] == 1][["lat", "lon"]]
+
+# Plot map
+st.map(fire_locations)
+
+# Fire Risk Factor Explanation
+st.subheader("📘 How Fire Risk Depends on Each Factor")
+st.markdown("""
+- **FFMC (Fine Fuel Moisture Code)**: Indicates how dry fine fuels are. Higher FFMC means fuels ignite easily.
+- **DMC (Duff Moisture Code)**: Reflects moisture in loosely compacted organic layers. Higher DMC suggests increased fire risk.
+- **DC (Drought Code)**: Measures long-term drying. High values indicate dry deep soil layers which contribute to persistent fires.
+- **ISI (Initial Spread Index)**: Combines wind and FFMC to estimate fire spread. High ISI means fast spread.
+- **Temperature**: Higher temps dry out fuel faster, increasing fire risk.
+- **Relative Humidity (RH)**: Lower humidity means drier air and fuel, raising fire risk.
+- **Wind Speed**: Stronger winds help fires spread quickly.
+- **Rainfall**: More rain reduces fire likelihood by increasing fuel moisture.
+- **Month & Day**: Seasonal and weekly trends impact conditions and human activities.
+""")
