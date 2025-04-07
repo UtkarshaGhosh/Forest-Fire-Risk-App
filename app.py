@@ -45,6 +45,8 @@ model = train_model(X, y)
 # Sidebar inputs
 st.sidebar.header("Input Parameters")
 def user_input_features():
+    X_val = st.sidebar.slider('X Coordinate', 1, 9, 4)
+    Y_val = st.sidebar.slider('Y Coordinate', 2, 9, 4)
     FFMC = st.sidebar.slider('FFMC Index', 0.0, 100.0, 85.0)
     DMC = st.sidebar.slider('DMC Index', 0.0, 100.0, 26.0)
     DC = st.sidebar.slider('DC Index', 0.0, 300.0, 94.3)
@@ -55,10 +57,12 @@ def user_input_features():
     rain = st.sidebar.slider('Rainfall (mm)', 0.0, 10.0, 0.0)
     month = st.sidebar.slider('Month (1=Jan, 12=Dec)', 1, 12, 8)
     day = st.sidebar.slider('Day (1=Mon, 7=Sun)', 1, 7, 4)
-    X_input = pd.DataFrame([[FFMC, DMC, DC, ISI, temp, RH, wind, rain, month, day]],
-                           columns=['FFMC', 'DMC', 'DC', 'ISI', 'temp', 'RH', 'wind', 'rain', 'month', 'day'])
+
+    X_input = pd.DataFrame([[X_val, Y_val, month, day, FFMC, DMC, DC, ISI, temp, RH, wind, rain]],
+                           columns=['X', 'Y', 'month', 'day', 'FFMC', 'DMC', 'DC', 'ISI', 'temp', 'RH', 'wind', 'rain'])
     return X_input
 
+# Get prediction
 input_df = user_input_features()
 prediction = model.predict(input_df)[0]
 probability = model.predict_proba(input_df)[0][1]
