@@ -3,6 +3,8 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 
@@ -24,20 +26,24 @@ def preprocess_data(df):
     df['fire_risk'] = df['area'].apply(lambda x: 1 if x > 0 else 0)
     X = df.drop(['area', 'fire_risk'], axis=1)
     y = df['fire_risk']
-    return train_test_split(X, y, test_size=0.2, random_state=42)
+    return X, y, df
 
 # 3. Train Model
-def train_model(X_train, y_train):
+def train_model(X, y):
     model = RandomForestClassifier(n_estimators=100, random_state=42)
-    model.fit(X_train, y_train)
+    model.fit(X, y)
     return model
 
-# Title
-st.title("Forest Fire Risk Predictor 🔥")
+# 4. App Title
+st.title("🔥 Forest Fire Risk Predictor")
+
+# Load data and train model
+data = load_data()
+X, y, full_df = preprocess_data(data)
+model = train_model(X, y)
 
 # Sidebar inputs
 st.sidebar.header("Input Parameters")
-
 def user_input_features():
     FFMC = st.sidebar.slider('FFMC Index', 0.0, 100.0, 85.0)
     DMC = st.sidebar.slider('DMC Index', 0.0, 100.0, 26.0)
@@ -49,21 +55,22 @@ def user_input_features():
     rain = st.sidebar.slider('Rainfall (mm)', 0.0, 10.0, 0.0)
     month = st.sidebar.slider('Month (1=Jan, 12=Dec)', 1, 12, 8)
     day = st.sidebar.slider('Day (1=Mon, 7=Sun)', 1, 7, 4)
+    X_input = pd.DataFrame([[FFMC, DMC, DC, ISI, temp, RH, wind, rain, month, day]],
+                           columns=['FFMC', 'DMC', 'DC', 'ISI', 'temp', 'RH', 'wind', 'rain', 'month', 'day'])
+    return X_input
 
-    return np.array([FFMC, DMC, DC, ISI, temp, RH, wind, rain, month, day]).reshape(1, -1)
+input_df = user_input_features()
+prediction = model.predict(input_df)[0]
+probability = model.predict_proba(input_df)[0][1]
 
-# Load & train model
-data = load_data()
-X_train, X_test, y_train, y_test = preprocess_data(data)
-model = train_model(X_train, y_train)
-
-# Predict
-input_data = user_input_features()
-prediction = model.predict(input_data)[0]
-probability = model.predict_proba(input_data)[0][1]
-
-# Output
+# Display output
 if prediction == 1:
     st.error(f"⚠️ High Fire Risk Detected! Probability: {probability*100:.2f}%")
 else:
     st.success(f"✅ Low Fire Risk. Probability: {probability*100:.2f}%")
+
+# Display heatmap
+st.subheader("🔥 Feature Correlation Heatmap")
+fig, ax = plt.subplots(figsize=(10, 6))
+sns.heatmap(full_df.corr(), annot=True, fmt=".2f", cmap="coolwarm", ax=ax)
+st.pyplot(fig)
