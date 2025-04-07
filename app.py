@@ -74,7 +74,7 @@ def user_input_features():
         'rain': rain,
     }
     X_input = pd.DataFrame([input_dict])
-    X_input = X[X.columns].iloc[:0].append(X_input, ignore_index=True)  # Ensures exact column match
+    X_input = pd.concat([X[X.columns].iloc[:0], X_input], ignore_index=True)  # Ensures exact column match
     return X_input
 
 input_df = user_input_features()
