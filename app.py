@@ -37,7 +37,7 @@ def predict_risk(model, input_data):
     if pred == 1:
         return f"\u26a0\ufe0f High Fire Risk Detected! Probability: {prob*100:.2f}%"
     else:
-        return f"✅ Low Fire Risk. Probability: {prob*100:.2f}%"
+        return f"Low Fire Risk. Probability: {prob*100:.2f}%"
 
 # Load and Train
 raw_data = load_data()
