@@ -8,7 +8,7 @@ from sklearn.ensemble import RandomForestClassifier
 
 # 1. Load Dataset
 def load_data():
-    df = pd.read_csv("https://archive.ics.uci.edu/ml/machine-learning-databases/forest-fires/forestfires.csv")
+    df = pd.read_csv("forestfires.csv")
     return df
 
 # 2. Preprocess Data
